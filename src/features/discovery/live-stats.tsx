@@ -26,7 +26,7 @@ export function LiveStatsStrip() {
         <div className="stats-strip">
           <span>
             <Database size={15} aria-hidden="true" />
-            <strong>{stats.total.toLocaleString("en")}</strong>AI products
+            <strong>{stats.total.toLocaleString("en")}</strong>AI sites
             indexed
           </span>
           <span>

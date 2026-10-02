@@ -28,7 +28,7 @@ The intended flow is Discover → Search → Filter → Inspect → Compare → 
 
 Use Node 24. Run `npm ci`, `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build`. Start the production application with `npm start`. `npm run test:ui` runs the Chromium acceptance tests against the server at port 3000; install its browser with `npx playwright install chromium` if needed.
 
-`docs/QA.md` records the checks performed during implementation: 56 unit/component tests, 10 Chromium acceptance tests covering the 20 requested scenarios, lint, TypeScript, production build, and visual checks at 375/768/1440 px. These are reported historical results, not evidence that you have rerun them. `docs/screenshots/` contains actual live-data screenshots, not fixtures used by the app.
+`docs/QA.md` records final checks: 63 unit/component tests, 14 Chromium acceptance tests covering the main scenarios and audit regressions, lint, TypeScript, production build, and responsive checks. These are reported results, not evidence that you have rerun them. `docs/screenshots/` contains actual live-data screenshots, not fixtures used by the app. The concise site plan is in `docs/SITE_PLAN.md`; delivery uses a clean source ZIP.
 
 If you cannot execute the project, explicitly label conclusions as static review. Do not claim that tests, API calls, or UI interactions passed unless you performed them. If a file is missing or truncated, say so. Report API-data limitations separately from defects in the application.
 

@@ -15,7 +15,7 @@ import { ReloadButton } from "@/components/reload-button";
 
 interface Props {
   params: Promise<{ domain: string }>;
-  searchParams: Promise<{ returnTo?: string }>;
+  searchParams: Promise<{ returnTo?: string | string[] }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

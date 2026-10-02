@@ -13,6 +13,7 @@ import { defaultFilters } from "@/lib/freeserp/query";
 import { page, site } from "@/test/fixtures";
 import type { SitePage } from "@/lib/freeserp/types";
 import { DiscoveryWorkspace } from "./workspace";
+import { discoverySession } from "./session";
 
 vi.mock("next/navigation", async () => {
   const { useSyncExternalStore } = await import("react");
@@ -73,6 +74,28 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("discovery interactions", () => {
+  it("clears an unsubmitted draft together with applied filters", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true, data: page() }));
+    vi.stubGlobal("fetch", fetchMock);
+    setup();
+    await user.click(screen.getByRole("button", { name: "AI Agents" }));
+    await waitFor(() => expect(window.location.search).toContain("category=agents"));
+    await user.type(screen.getByRole("searchbox"), "unsubmitted draft");
+    await user.click(screen.getByRole("button", { name: "Clear all" }));
+    expect(screen.getByRole("searchbox")).toHaveValue("");
+    await waitFor(() => expect(window.location.search).toBe(""));
+  });
+  it("restores a loaded list after returning without a duplicate client request", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    discoverySession.remember("", page([site("first.test"), site("later.test")]), 900);
+    setup();
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Product later.test" })).toBeVisible());
+    await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith({ top: 900, behavior: "instant" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it("uses server data without requesting it again on hydration", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -131,7 +154,7 @@ describe("discovery interactions", () => {
     setup(page([]));
     expect(
       screen.getByRole("heading", {
-        name: "No AI products match these filters.",
+        name: "No AI sites match these filters.",
       }),
     ).toBeVisible();
     await user.click(screen.getByRole("button", { name: "AI Agents" }));
@@ -151,7 +174,7 @@ describe("discovery interactions", () => {
     );
     setup(null, "The data source may be temporarily unavailable.");
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Couldn’t load AI products.",
+      "Couldn’t load AI sites.",
     );
     await user.click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() =>
@@ -208,7 +231,7 @@ describe("discovery interactions", () => {
     );
     expect(
       screen.getByText(
-        "You can compare up to 3 products. Remove one to add another.",
+        "You can compare up to 3 sites. Remove one to add another.",
       ),
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "Compare 3" })).toHaveAttribute(

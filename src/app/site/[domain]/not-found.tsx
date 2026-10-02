@@ -25,7 +25,7 @@ export default function SiteNotFound() {
           be unavailable or no longer indexed.
         </p>
         <Link className="button button-primary" href="/">
-          Explore AI products
+          Explore AI sites
         </Link>
       </div>
     </main>

@@ -11,7 +11,11 @@ import { formatDR, formatDate, formatSource } from "@/lib/freeserp/format";
 import { CompareButton } from "@/features/compare/compare-controls";
 import type { Site } from "@/lib/freeserp/types";
 
-export function SiteCard({ site, returnTo }: { site: Site; returnTo: string }) {
+export function SiteCard({ site, returnTo, onInspect }: {
+  site: Site;
+  returnTo: string;
+  onInspect?: () => void;
+}) {
   const detailHref = `/site/${encodeURIComponent(site.domain)}?${new URLSearchParams({ returnTo })}`;
   return (
     <article className="site-card">
@@ -21,7 +25,18 @@ export function SiteCard({ site, returnTo }: { site: Site; returnTo: string }) {
         </span>
         <div className="card-identity">
           <h3>
-            <Link prefetch={false} href={detailHref} title={site.title}>
+            <Link
+              prefetch={false}
+              href={detailHref}
+              title={site.title}
+              onClick={(event) => {
+                if (
+                  !event.metaKey && !event.ctrlKey &&
+                  !event.shiftKey && !event.altKey
+                )
+                  onInspect?.();
+              }}
+            >
               {site.title}
             </Link>
           </h3>

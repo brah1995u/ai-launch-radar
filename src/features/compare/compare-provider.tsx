@@ -72,7 +72,7 @@ export function CompareProvider({ children }: { children: ReactNode }) {
         setNotice("");
       } else if (selected.length === 3) {
         setNotice(
-          "You can compare up to 3 products. Remove one to add another.",
+          "You can compare up to 3 sites. Remove one to add another.",
         );
       } else {
         setSelected([...selected, site]);

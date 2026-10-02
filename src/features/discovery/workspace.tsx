@@ -20,6 +20,7 @@ import { SearchForm } from "./search-form";
 import { ActiveFilters, Filters, QuickCategories } from "./filters";
 import { SiteCard } from "./site-card";
 import { EmptyResults, ResultsSkeleton, SearchError } from "./states";
+import { discoverySession } from "./session";
 
 interface Props {
   initialFilters: SearchFilters;
@@ -81,14 +82,43 @@ export function DiscoveryWorkspace({
     busy: false,
   });
   const [retry, setRetry] = useState(0);
+  const [searchReset, setSearchReset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreError, setMoreError] = useState<string | null>(null);
   const lastRequest = useRef(`${serializeFilters(initialFilters)}:0`);
   const generation = useRef(0);
   const moreController = useRef<AbortController | null>(null);
   const requestLock = useRef(false);
+  const initialKey = useRef(serializeFilters(initialFilters).toString());
+  const pendingScroll = useRef<number | null>(null);
   const loading = state.key !== key || state.busy;
   const returnTo = resultsHref(filters);
+
+  useEffect(() => {
+    // Restore after hydration so SSR and the first client render stay identical.
+    const timer = window.setTimeout(() => {
+      const snapshot = discoverySession.take(initialKey.current);
+      if (!snapshot) return;
+      pendingScroll.current = snapshot.scrollY;
+      setState({
+        key: initialKey.current,
+        page: snapshot.page,
+        error: null,
+        busy: false,
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (pendingScroll.current === null) return;
+    const scrollY = pendingScroll.current;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: "instant" });
+      pendingScroll.current = null;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state.page]);
 
   useEffect(() => {
     const token = `${key}:${retry}`;
@@ -150,6 +180,16 @@ export function DiscoveryWorkspace({
     setRetry((value) => value + 1);
   }
 
+  function clearFilters() {
+    setSearchReset((value) => value + 1);
+    changeFilters({ ...defaultFilters });
+  }
+
+  function rememberResults() {
+    if (!loading && state.page)
+      discoverySession.remember(key, state.page, window.scrollY);
+  }
+
   async function loadMore() {
     if (requestLock.current || loading || state.page?.nextFrom == null) return;
     requestLock.current = true;
@@ -185,7 +225,7 @@ export function DiscoveryWorkspace({
         setMoreError(
           error instanceof Error
             ? error.message
-            : "Couldn’t load more products. Please try again.",
+            : "Couldn’t load more sites. Please try again.",
         );
     } finally {
       if (generation.current === currentGeneration) {
@@ -199,10 +239,10 @@ export function DiscoveryWorkspace({
     <>
       <section
         className="discovery-panel"
-        aria-label="Search and filter AI products"
+        aria-label="Search and filter AI sites"
       >
         <SearchForm
-          key={filters.q}
+          key={`${filters.q}:${searchReset}`}
           initialQuery={filters.q}
           onSearch={(q) => changeFilters({ ...filters, q })}
         />
@@ -236,9 +276,13 @@ export function DiscoveryWorkspace({
                   : ""}
             </span>
           </div>
-          <p>Compare up to 3 products</p>
+          <p>Compare up to 3 sites</p>
         </div>
-        <ActiveFilters filters={filters} onChange={changeFilters} />
+        <ActiveFilters
+          filters={filters}
+          onChange={changeFilters}
+          onClear={clearFilters}
+        />
         {loading ? (
           <ResultsSkeleton />
         ) : state.error ? (
@@ -246,15 +290,20 @@ export function DiscoveryWorkspace({
         ) : !state.page?.sites.length ? (
           <EmptyResults
             onClear={() => {
+              clearFilters();
               if (key === "") retrySearch();
-              else changeFilters({ ...defaultFilters });
             }}
           />
         ) : (
           <>
             <div className="results-grid">
               {state.page.sites.map((site) => (
-                <SiteCard key={site.domain} site={site} returnTo={returnTo} />
+                <SiteCard
+                  key={site.domain}
+                  site={site}
+                  returnTo={returnTo}
+                  onInspect={rememberResults}
+                />
               ))}
             </div>
             <div className="load-more-area">
@@ -300,7 +349,7 @@ export function DiscoveryWorkspace({
           </>
         )}
       </section>
-      <CompareBar returnTo={returnTo} />
+      <CompareBar returnTo={returnTo} onNavigate={rememberResults} />
     </>
   );
 }

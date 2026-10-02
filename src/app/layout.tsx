@@ -5,11 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "AI Launch Radar — Discover newly live AI products",
+    default: "AI Launch Radar — Discover newly live AI sites",
     template: "%s | AI Launch Radar",
   },
   description:
-    "Discover newly live AI products by category, technology and Domain Rating. Search real FreeSERP site-level data, inspect discovery signals and compare products.",
+    "Discover newly live AI sites by category, technology and Domain Rating. Search real FreeSERP site-level data, inspect discovery signals and compare sites.",
   applicationName: "AI Launch Radar",
 };
 

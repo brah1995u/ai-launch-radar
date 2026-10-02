@@ -21,7 +21,7 @@ export function SearchForm({
       }}
     >
       <label className="sr-only" htmlFor="product-search">
-        Search AI products
+        Search AI sites
       </label>
       <Search className="search-icon" size={21} aria-hidden="true" />
       <input

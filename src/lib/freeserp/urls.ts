@@ -46,8 +46,9 @@ export function safeExternalUrl(value: unknown): string | null {
   }
 }
 
-export function safeReturnTo(value: string | undefined): string {
-  if (!value || (value !== "/" && !value.startsWith("/?"))) return "/";
+export function safeReturnTo(value: unknown): string {
+  if (typeof value !== "string" || (value !== "/" && !value.startsWith("/?")))
+    return "/";
   try {
     const url = new URL(value, "https://radar.invalid");
     return url.origin === "https://radar.invalid" && url.pathname === "/"

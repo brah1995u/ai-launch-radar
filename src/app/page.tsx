@@ -36,19 +36,15 @@ export default async function Home({
             <br className="desktop-break" /> <span>newly live in AI.</span>
           </h1>
           <p className="hero-tagline">
-            Discover newly live AI products by category, stack and authority.
-          </p>
-          <p className="hero-support">
-            Real sites. Live web discovery signals. A clearer view of what’s
-            emerging.
+            Explore AI sites by category, technology and authority.
           </p>
         </div>
         <div className="hero-context">
           <div>
             <strong>A signal, not a launch claim.</strong>
             <p>
-              Reachable sites, detected builders and authority signals.
-              Everything you need for a first look.
+              FreeSERP’s AI niche includes products, agencies and research sites.
+              Discovery dates describe crawl observations.
             </p>
             <Link href="/about">
               How to read the data

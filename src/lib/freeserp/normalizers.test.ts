@@ -131,5 +131,7 @@ describe("safe URLs and domain matching", () => {
     expect(safeReturnTo("//evil.test")).toBe("/");
     expect(safeReturnTo("https://evil.test")).toBe("/");
     expect(safeReturnTo("/compare")).toBe("/");
+    for (const value of [undefined, null, ["/", "/?q=voice"], {}, 42])
+      expect(safeReturnTo(value)).toBe("/");
   });
 });

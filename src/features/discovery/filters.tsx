@@ -175,9 +175,11 @@ export function Filters({
 export function ActiveFilters({
   filters,
   onChange,
+  onClear,
 }: {
   filters: SearchFilters;
   onChange: (filters: SearchFilters) => void;
+  onClear: () => void;
 }) {
   const chips: { key: keyof SearchFilters; label: string }[] = [];
   if (filters.q) chips.push({ key: "q", label: `“${filters.q}”` });
@@ -211,16 +213,7 @@ export function ActiveFilters({
       <button
         type="button"
         className="clear-filters"
-        onClick={() =>
-          onChange({
-            q: "",
-            category: "",
-            source: "",
-            dr: "",
-            days: "",
-            sort: "newest",
-          })
-        }
+        onClick={onClear}
       >
         Clear all
       </button>

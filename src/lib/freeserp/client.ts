@@ -12,6 +12,11 @@ import type {
 
 const ENDPOINT = "https://freeserp.ai/api.php";
 
+function isTimeout(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "name" in error &&
+    ["TimeoutError", "AbortError"].includes(String(error.name));
+}
+
 export class FreeSerpError extends Error {
   constructor(
     public readonly code: ApiError["code"],
@@ -27,12 +32,15 @@ async function request(
   params: URLSearchParams,
   revalidate = 30,
 ): Promise<unknown> {
+  const started = Date.now();
+  let upstreamStatus: number | null = null;
   try {
     const response = await fetch(`${ENDPOINT}?${params}`, {
       headers: { Accept: "application/json", "X-Agent": "AI-Launch-Radar/1.0" },
       signal: AbortSignal.timeout(10_000),
       next: { revalidate },
     });
+    upstreamStatus = response.status;
     if (!response.ok)
       throw new FreeSerpError(
         "upstream",
@@ -41,7 +49,9 @@ async function request(
       );
     try {
       return await response.json();
-    } catch {
+    } catch (error) {
+      // The timeout also covers downloading the body, after headers arrive.
+      if (isTimeout(error)) throw error;
       throw new FreeSerpError(
         "invalid_response",
         502,
@@ -49,24 +59,16 @@ async function request(
       );
     }
   } catch (error) {
-    if (error instanceof FreeSerpError) throw error;
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "name" in error &&
-      ["TimeoutError", "AbortError"].includes(String(error.name))
-    ) {
-      throw new FreeSerpError(
-        "timeout",
-        504,
-        "The data source took too long to respond. Please try again.",
-      );
-    }
-    throw new FreeSerpError(
-      "upstream",
-      502,
-      "The data source may be temporarily unavailable.",
-    );
+    const failure = error instanceof FreeSerpError ? error : isTimeout(error)
+      ? new FreeSerpError("timeout", 504,
+          "The data source took too long to respond. Please try again.")
+      : new FreeSerpError("upstream", 502,
+          "The data source may be temporarily unavailable.");
+    console.warn("[FreeSERP] Request failed.", {
+      code: failure.code, status: failure.status, upstreamStatus,
+      durationMs: Date.now() - started,
+    });
+    throw failure;
   }
 }
 

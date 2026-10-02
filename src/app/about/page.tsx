@@ -39,7 +39,7 @@ export default function About() {
           <p>
             AI Launch Radar helps founders, marketers, SEO specialists,
             developers and product researchers discover AI sites, inspect their
-            signals and compare a few promising products.
+            signals and compare a few promising sites.
           </p>
           <p>
             It uses{" "}
@@ -126,7 +126,7 @@ export default function About() {
         <p>
           Dates, summaries, categories and HTTP status reflect FreeSERP
           observations and may be incomplete or out of date. Results are fetched
-          from the API and briefly cached. No products or statistics are
+          from the API and briefly cached. No sites or statistics are
           fabricated.
         </p>
       </aside>

@@ -17,9 +17,9 @@ import { ReloadButton } from "@/components/reload-button";
 import type { Site } from "@/lib/freeserp/types";
 
 export const metadata: Metadata = {
-  title: "Compare AI products",
+  title: "Compare AI sites",
   description:
-    "Compare up to three AI products using real site summaries, categories, authority, technology and FreeSERP discovery dates.",
+    "Compare up to three AI sites using real site summaries, categories, authority, technology and FreeSERP discovery dates.",
   robots: { index: false, follow: true },
 };
 
@@ -32,7 +32,7 @@ interface LookupResult {
 export default async function Compare({
   searchParams,
 }: {
-  searchParams: Promise<{ domain?: string | string[]; returnTo?: string }>;
+  searchParams: Promise<{ domain?: string | string[]; returnTo?: string | string[] }>;
 }) {
   await connection();
   const params = await searchParams;
@@ -59,9 +59,9 @@ export default async function Compare({
             <Columns3 size={27} aria-hidden="true" />
           </span>
           <h1>A clearer view, side by side.</h1>
-          <p>Select 2 or 3 products from discovery to compare their signals.</p>
+          <p>Select 2 or 3 sites from discovery to compare their signals.</p>
           <Link className="button button-primary" href={returnTo}>
-            Choose products
+            Choose sites
           </Link>
         </div>
       </main>
@@ -84,9 +84,17 @@ export default async function Compare({
     {
       label: "Overview",
       render: (site) => (
-        <p className="compare-summary">
-          {site.summary ?? "No summary available."}
-        </p>
+        <>
+          <p className="compare-summary">
+            {site.summary ?? "No summary available."}
+          </p>
+          {site.summary && (
+            <Link className="summary-link" prefetch={false}
+              href={`/site/${site.domain}?${new URLSearchParams({ returnTo })}`}>
+              Full site summary →
+            </Link>
+          )}
+        </>
       ),
     },
     { label: "Categories", render: (site) => <CategoryBadges site={site} /> },
@@ -135,7 +143,7 @@ export default async function Compare({
       <div className="page-heading">
         <div className="eyebrow">SIDE-BY-SIDE RESEARCH</div>
         <h1>Compare the signals.</h1>
-        <p>{domains.length} products. One clear view. Your judgment.</p>
+        <p>{domains.length} sites. One clear view. Your judgment.</p>
       </div>
       <p className="comparison-scroll-hint">
         Scroll sideways to compare every product →
@@ -146,7 +154,7 @@ export default async function Compare({
         role="region"
         aria-label="Product comparison table; scroll horizontally on smaller screens"
       >
-        <table className="comparison-table">
+        <table className={`comparison-table comparison-count-${domains.length}`}>
           <caption className="sr-only">
             Comparison of {domains.join(", ")}
           </caption>

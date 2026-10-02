@@ -1,6 +1,6 @@
 # Verification notes
 
-Reviewed on October 2, 2026. Functional browser checks use a production build and live FreeSERP Main data; fixtures and controlled failures are confined to tests.
+Final review on October 2, 2026. Functional browser checks use a production build and live FreeSERP Main data; fixtures and controlled failures are confined to tests.
 
 ## Acceptance checklist
 
@@ -29,11 +29,18 @@ Reviewed on October 2, 2026. Functional browser checks use a production build an
 
 ## Additional checks
 
-- 56 Vitest unit/component tests, ESLint with zero warnings, TypeScript check, and production build.
+- 63 Vitest unit/component tests, 14 Chromium acceptance scenarios, ESLint with zero warnings, TypeScript check, and production build.
 - No API fixtures, production mock mode, API keys, authentication or database.
 - Default discovery data was older than the current date, and live “New today” was zero. The UI preserves those facts rather than implying a fresh launch feed.
 - `AI Chatbot & Assistant` was confirmed through a live query; the unprefixed documentation value returned no matches.
 - SSR can temporarily include hidden streamed copies of markup. Acceptance tests inspect visible records and accessible controls to avoid mistaking transport markup for duplicated displayed products.
-- Visual review covers spacing, hierarchy, card layout and small-screen overflow. No Lighthouse result or comprehensive accessibility certification is claimed.
+- Visual review covers spacing, hierarchy, card layout and small-screen overflow. At 375×812 the first card begins around 560 px and its summary is visible. Tablet filters use three columns. Comparison overviews are limited to six lines with a link to the full detail summary; row labels remain visible during table scrolling.
+- New regression scenarios cover unsubmitted-draft clearing, retaining a draft during category changes, returning from card 25 with all 48 records and the previous scroll position, one-item mobile selection and individual removal across categories, and repeated `returnTo` parameters on both detail and comparison routes.
+- All detail signal disclosures were opened/closed with the keyboard at 320, 375 and 768 px, checking explanation bounds and document overflow. Body-download timeout/abort failures retain the 504 classification; malformed JSON remains a 502. The return cache's expiry, entry limit and record limit are tested.
+- No Lighthouse result, 200% text-resize review or comprehensive accessibility certification is claimed. Safari/Firefox remain future coverage.
+
+## Submission
+
+The chosen delivery is a clean source ZIP with the lockfile, configurations, source, tests, README, site plan and QA screenshots. Generated builds, dependencies, Git metadata, environment files, local review exports and internal audit prompts are excluded. The extracted artifact was checked with `npm ci`, tests, lint, typecheck, production build and a live-data production smoke check. No public hosted demo is claimed.
 
 Visual evidence: [desktop](screenshots/desktop.png), [mobile](screenshots/mobile.png), and [mobile comparison](screenshots/compare-mobile.png). These images show live API records observed during review; the application does not use them as data.

@@ -52,6 +52,16 @@ describe("FreeSERP client", () => {
       status: 504,
     });
   });
+  it.each(["TimeoutError", "AbortError"])("keeps %s during body download as a 504", async (name) => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => { throw new DOMException("body interrupted", name); },
+    }));
+    await expect(searchSites(defaultFilters)).rejects.toMatchObject({ code: "timeout", status: 504 });
+    expect(console.warn).toHaveBeenCalledWith("[FreeSERP] Request failed.",
+      expect.objectContaining({ code: "timeout", upstreamStatus: 200 }));
+  });
   it("rejects malformed JSON and wrong-index responses", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("not JSON"));
     vi.stubGlobal("fetch", fetchMock);

@@ -25,6 +25,12 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
+body:has(.compare-bar) {
+  padding-bottom: 130px;
+}
+html:has(.compare-bar) {
+  scroll-padding-bottom: 160px;
+}
 button,
 input,
 select {
@@ -244,7 +250,7 @@ svg {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #98a5b6;
+  color: #64748b;
   border-top: 1px solid #edf0f5;
   margin-top: 18px;
   padding-top: 13px;
@@ -587,12 +593,14 @@ svg {
   line-height: 1.5;
   letter-spacing: -0.1px;
   font-weight: 650;
+  min-height: 39px;
+  overflow-wrap: anywhere;
+}
+.card-identity h3 a {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 39px;
-  overflow-wrap: anywhere;
 }
 .card-identity h3 a:hover {
   color: var(--blue);
@@ -773,6 +781,9 @@ svg {
   list-style: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 3px;
 }
 .signal-help summary::-webkit-details-marker {
@@ -785,7 +796,7 @@ svg {
   display: block;
   position: absolute;
   z-index: 20;
-  top: 22px;
+  top: 32px;
   left: 50%;
   transform: translateX(-50%);
   width: 190px;
@@ -802,6 +813,21 @@ svg {
 .card-signals .signal-help > span {
   left: -60px;
   transform: none;
+}
+.site-card, .site-facts {
+  position: relative;
+}
+.site-card .signal-help, .site-facts .signal-help {
+  position: static;
+}
+.site-card .signal-help > span, .site-facts .signal-help > span {
+  left: 12px;
+  right: 12px;
+  top: auto;
+  transform: none;
+  width: auto;
+  margin-top: 5px;
+  font-size: 12px;
 }
 .load-more-area {
   text-align: center;
@@ -959,6 +985,7 @@ svg {
   align-items: center;
   gap: 7px;
   min-width: 0;
+  min-height: 36px;
   border: 1px solid #ffffff18;
   padding: 6px 8px;
   font-size: 10px;
@@ -975,6 +1002,9 @@ svg {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+.compare-edit {
+  display: none;
 }
 .compare-bar .button-quiet {
   color: #b8c6db;
@@ -1269,8 +1299,17 @@ svg {
 .comparison-table tbody th {
   font-size: 11px;
   font-weight: 500;
-  color: #7e8da2;
+  color: #5d6d83;
   background: #fbfcfe;
+}
+.comparison-table tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  box-shadow: 1px 0 var(--border);
+}
+.comparison-table th:has(details[open]) {
+  z-index: 2;
 }
 .comparison-table tbody th .signal-help {
   margin-left: 5px;
@@ -1284,7 +1323,17 @@ svg {
   font-size: 9px;
 }
 .compare-summary {
-  line-height: 1.9;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.summary-link {
+  display: inline-block;
+  color: var(--blue);
+  margin-top: 8px;
+  font-size: 12px;
 }
 .comparison-rating {
   font-size: 21px;
@@ -1293,7 +1342,7 @@ svg {
 }
 .comparison-rating small {
   font-size: 10px;
-  color: #94a2b8;
+  color: #64748b;
   font-weight: 400;
 }
 .comparison-missing {
@@ -1421,7 +1470,7 @@ code {
   margin-top: 7px;
   font-size: 12px;
   line-height: 1.8;
-  color: #7889a2;
+  color: #536b8d;
 }
 .short-page {
   min-height: 60vh;
@@ -1461,13 +1510,26 @@ code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 9px;
   }
   .filter-grid select {
-    font-size: 10px;
+    font-size: 12px;
   }
   .compare-selection {
     display: none;
+    order: 3;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+  }
+  .compare-selection.is-expanded {
+    display: flex;
+  }
+  .compare-edit {
+    display: inline-flex;
+  }
+  .compare-bar {
+    flex-wrap: wrap;
   }
   .detail-header {
     flex-wrap: wrap;
@@ -1478,6 +1540,12 @@ code {
   }
 }
 @media (max-width: 767px) {
+  body:has(.compare-bar) {
+    padding-bottom: 230px;
+  }
+  html:has(.compare-bar) {
+    scroll-padding-bottom: 250px;
+  }
   .container {
     width: calc(100% - 40px);
   }
@@ -1505,19 +1573,20 @@ code {
     display: none;
   }
   .discovery-main {
-    padding-top: 31px;
+    padding-top: 20px;
   }
   .hero {
     display: block;
   }
   .hero h1 {
-    font-size: 38px;
+    font-size: 32px;
+    margin-top: 12px;
     letter-spacing: -1.4px;
   }
   .hero-tagline {
-    font-size: 14px;
+    font-size: 13px;
     max-width: 470px;
-    margin-top: 16px;
+    margin-top: 12px;
   }
   .hero-support {
     font-size: 11px;
@@ -1527,11 +1596,11 @@ code {
     display: none;
   }
   .eyebrow {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 1.3px;
   }
   .stats-reservation {
-    height: 83px;
+    height: 64px;
   }
   .stats-strip {
     gap: 9px 18px;
@@ -1557,7 +1626,7 @@ code {
     height: 49px;
   }
   .search-form input {
-    font-size: 12px;
+    font-size: 16px;
     padding-inline: 9px;
   }
   .search-icon {
@@ -1576,9 +1645,14 @@ code {
   .quick-categories {
     gap: 6px;
     margin-top: 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
   .category-chip {
-    font-size: 10px;
+    font-size: 12px;
+    min-height: 40px;
+    flex-shrink: 0;
     padding: 6px 8px;
   }
   .category-chip svg {
@@ -1590,10 +1664,10 @@ code {
   }
   .mobile-filter-toggle {
     display: flex;
-    min-height: 36px;
+    min-height: 44px;
     width: 100%;
     justify-content: flex-start;
-    font-size: 11px;
+    font-size: 12px;
   }
   .mobile-filter-toggle > span:last-child {
     margin-left: auto;
@@ -1620,11 +1694,11 @@ code {
     display: grid;
   }
   .filter-grid label {
-    font-size: 10px;
+    font-size: 12px;
   }
   .filter-grid select {
-    font-size: 11px;
-    min-height: 41px;
+    font-size: 16px;
+    min-height: 44px;
   }
   .filter-grid label:last-child {
     grid-column: 1/-1;
@@ -1650,7 +1724,7 @@ code {
     padding-top: 3px;
   }
   .results-total {
-    font-size: 9px;
+    font-size: 11px;
   }
   .results-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1666,29 +1740,34 @@ code {
     font-size: 11px;
   }
   .card-summary {
-    font-size: 12px;
+    font-size: 13px;
   }
   .badge {
     font-size: 10px;
   }
   .card-signals dt {
-    font-size: 10px;
+    font-size: 11px;
   }
   .card-signals dd {
     font-size: 12px;
   }
   .card-date {
-    font-size: 10px;
+    font-size: 11px;
   }
   .compare-button {
-    min-height: 36px;
-    font-size: 11px;
+    min-height: 44px;
+    font-size: 12px;
   }
   .visit-link {
     font-size: 12px;
+    min-height: 44px;
   }
   .signal-help > span {
     width: 185px;
+  }
+  .signal-help summary {
+    min-width: 32px;
+    min-height: 32px;
   }
   .compare-bar {
     width: calc(100% - 24px);
@@ -1711,8 +1790,8 @@ code {
   }
   .compare-bar .button {
     font-size: 11px;
-    min-height: 36px;
-    padding: 8px 10px;
+    min-height: 40px;
+    padding: 8px;
   }
   .compare-bar .button svg {
     width: 12px;
@@ -1777,14 +1856,16 @@ code {
     border-radius: 0 !important;
   }
   .site-facts dt {
-    font-size: 9px;
+    font-size: 11px;
   }
   .site-facts dd {
     font-size: 12px;
   }
   .site-facts .signal-help > span {
-    left: -75px;
+    left: 12px;
+    right: 12px;
     transform: none;
+    width: auto;
   }
   .page-heading h1 {
     font-size: 29px;
@@ -1796,14 +1877,17 @@ code {
     display: block;
   }
   .comparison-table {
-    min-width: 760px;
+    min-width: 790px;
+  }
+  .comparison-count-2 {
+    min-width: 565px;
   }
   .comparison-table th,
   .comparison-table td {
-    padding: 17px;
+    padding: 14px 12px;
   }
   .comparison-table thead th:first-child {
-    width: 160px;
+    width: 115px;
   }
   .comparison-table .signal-help > span {
     left: 0;

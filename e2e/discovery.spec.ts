@@ -219,7 +219,7 @@ test("2/3 product comparison, fourth-item limit and shareable refresh", async ({
     .click();
   await expect(
     page.getByText(
-      "You can compare up to 3 products. Remove one to add another.",
+      "You can compare up to 3 sites. Remove one to add another.",
     ),
   ).toBeVisible();
   await page.getByRole("link", { name: "Compare 3", exact: true }).click();
@@ -234,6 +234,13 @@ test("2/3 product comparison, fourth-item limit and shareable refresh", async ({
     .locator(".comparison-scroll")
     .evaluate((element) => element.scrollWidth > element.clientWidth);
   expect(tableScrolls).toBe(true);
+  await page.screenshot({ path: "docs/screenshots/compare-mobile.png" });
+  const label = page.locator(".comparison-table thead th").first();
+  const before = await label.boundingBox();
+  await page.locator(".comparison-scroll").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => page.locator(".comparison-scroll").evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  expect((await label.boundingBox())!.x).toBeCloseTo(before!.x, 0);
 });
 
 test("real empty results and a controlled API failure both recover", async ({
@@ -248,7 +255,7 @@ test("real empty results and a controlled API failure both recover", async ({
   );
   expect(empty.total).toBe(0);
   await expect(
-    page.getByRole("heading", { name: "No AI products match these filters." }),
+    page.getByRole("heading", { name: "No AI sites match these filters." }),
   ).toBeVisible();
   await change(page, () =>
     page.getByRole("button", { name: "Clear filters", exact: true }).click(),
@@ -268,7 +275,7 @@ test("real empty results and a controlled API failure both recover", async ({
   );
   await page.getByRole("button", { name: "AI Agents", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Couldn’t load AI products." }),
+    page.getByRole("heading", { name: "Couldn’t load AI sites." }),
   ).toBeVisible();
   await page.unroute("**/api/sites?**");
   await change(page, () =>
@@ -304,6 +311,13 @@ for (const width of [375, 768, 1440]) {
           getComputedStyle(element).gridTemplateColumns.split(" ").length,
       );
     expect(columns).toBe(width === 375 ? 1 : width === 768 ? 2 : 3);
+    if (width !== 768) {
+      if (width === 375) {
+        await page.getByRole("button", { name: /Filters.*Hide/ }).click();
+        expect(await page.locator(".site-card:visible").first().evaluate((el) => el.getBoundingClientRect().top)).toBeLessThan(600);
+      }
+      await page.screenshot({ path: `docs/screenshots/${width === 375 ? "mobile" : "desktop"}.png` });
+    }
     await page
       .getByRole("link", { name: "About the data", exact: true })
       .click();
@@ -331,6 +345,76 @@ test("invalid proxy parameters and missing exact records are handled honestly", 
   ).toBeVisible();
   await page.goto("/compare?domain=invalid");
   await expect(
-    page.getByRole("link", { name: "Choose products" }),
+    page.getByRole("link", { name: "Choose sites" }),
   ).toBeVisible();
+});
+
+test("Clear all resets an unsubmitted draft while category changes retain it", async ({ page }) => {
+  await ready(page);
+  await change(page, () => page.getByRole("button", { name: "AI Agents", exact: true }).click());
+  await page.getByRole("searchbox").fill("unsubmitted draft");
+  await change(page, () => page.getByRole("button", { name: "Code & Dev", exact: true }).click());
+  await expect(page.getByRole("searchbox")).toHaveValue("unsubmitted draft");
+  await change(page, () => page.getByRole("button", { name: "Clear all", exact: true }).click());
+  await expect(page.getByRole("searchbox")).toHaveValue("");
+  await expect(page).toHaveURL("http://127.0.0.1:3000/");
+});
+
+test("return from a later detail preserves loaded records and scroll", async ({ page }) => {
+  await ready(page);
+  await change(page, () => page.getByRole("button", { name: "Load more", exact: true }).click());
+  await expect(page.locator(".site-card:visible")).toHaveCount(48);
+  const link = page.locator(".site-card:visible").nth(24).locator("h3 a");
+  await link.scrollIntoViewIfNeeded();
+  const scrollY = await page.evaluate(() => window.scrollY);
+  const domains = await page.locator(".site-card:visible .card-identity p").allTextContents();
+  await link.click();
+  await expect(page.getByRole("heading", { name: "Discovery signals" })).toBeVisible();
+  await page.getByRole("link", { name: "Back to results", exact: true }).click();
+  await expect(page.locator(".site-card:visible")).toHaveCount(48);
+  expect(await page.locator(".site-card:visible .card-identity p").allTextContents()).toEqual(domains);
+  await expect.poll(async () => Math.abs(await page.evaluate(() => window.scrollY) - scrollY)).toBeLessThan(5);
+});
+
+test("mobile selection can remove a site absent from the active category", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await ready(page);
+  const domain = (await page.locator(".site-card:visible .card-identity p").first().textContent())!;
+  await page.locator(".site-card:visible").first().getByRole("button", { name: /^Add / }).click();
+  const bar = page.getByRole("complementary", { name: "Selected sites" });
+  await expect(bar.getByRole("button", { name: "Compare 1" })).toBeDisabled();
+  await expect(bar.getByText("Select one more site")).toBeVisible();
+  await change(page, () => page.getByRole("button", { name: "AI Agents", exact: true }).click());
+  await page.locator(".site-card:visible").first().getByRole("button", { name: /^Add / }).click();
+  await bar.getByRole("button", { name: "Edit", exact: true }).click();
+  await bar.getByRole("button", { name: `Remove ${domain} from comparison`, exact: true }).click();
+  await expect(bar.getByText("1 site selected")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("repeated return paths are safe and mobile explanations stay within the page", async ({ page }) => {
+  await ready(page);
+  const domains = await page.locator(".site-card:visible .card-identity p").allTextContents();
+  await page.goto(`/site/${domains[0]}?returnTo=%2F&returnTo=%2F%3Fq%3Dvoice`);
+  await expect(page.getByRole("heading", { name: "Discovery signals" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to results", exact: true })).toHaveAttribute("href", "/");
+  for (const width of [320, 375, 768]) {
+    await page.setViewportSize({ width, height: 812 });
+    const disclosures = page.locator(".site-facts .signal-help summary");
+    for (let i = 0; i < await disclosures.count(); i++) {
+      await disclosures.nth(i).focus();
+      await disclosures.nth(i).press("Space");
+      const explanation = page.locator(".site-facts details[open] > span");
+      await expect(explanation).toBeVisible();
+      const box = await explanation.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await disclosures.nth(i).press("Space");
+      await expect(explanation).toHaveCount(0);
+    }
+  }
+  await page.goto(`/compare?domain=${domains[0]}&domain=${domains[1]}&returnTo=%2F&returnTo=%2F%3Fq%3Dvoice`);
+  await expect(page.locator(".comparison-table thead th")).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Back to results", exact: true })).toHaveAttribute("href", "/");
 });
